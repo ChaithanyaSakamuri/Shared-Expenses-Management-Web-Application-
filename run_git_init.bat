@@ -1,0 +1,19 @@
+@echo off
+title Spreetail Git Init & Commit
+set PATH=D:\placements\SPREETAIL\git-portable\cmd;%PATH%
+cd D:\placements\SPREETAIL
+echo Initializing git repository...
+call git init
+echo Configuring local git identity...
+call git config user.name "Chaithanya Sakamuri"
+call git config user.email "chaithanya@example.com"
+echo Staging all files...
+call git add .
+echo Creating initial commit...
+call git commit -m "Initial commit: Spreetail Shared Expenses Hub"
+echo Renaming branch to main...
+call git branch -M main
+echo Linking remote origin...
+call git remote add origin https://github.com/ChaithanyaSakamuri/Shared-Expenses-Management-Web-Application-
+echo Git initialization and local commit successfully complete!
+pause

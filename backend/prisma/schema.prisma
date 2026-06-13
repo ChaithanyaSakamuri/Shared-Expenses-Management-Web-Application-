@@ -1,0 +1,152 @@
+// This is your Prisma schema file.
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // For production, change provider to "postgresql" and DATABASE_URL in your .env
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("USER") // ADMIN, USER
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  createdGroups     Group[]         @relation("GroupCreator")
+  memberships       GroupMember[]
+  paidExpenses      Expense[]
+  payerSettlements  Settlement[]    @relation("SettlementPayer")
+  payeeSettlements  Settlement[]    @relation("SettlementPayee")
+  auditLogs         AuditLog[]
+  resolvedAnomalies ImportAnomaly[]
+  uploadedJobs      ImportJob[]
+}
+
+model Group {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  createdById Int
+  createdBy   User     @relation("GroupCreator", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     GroupMember[]
+  expenses    Expense[]
+  settlements Settlement[]
+}
+
+model GroupMember {
+  id        Int       @id @default(autoincrement())
+  groupId   Int
+  group     Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime  @default(now())
+  leftAt    DateTime?
+  status    String    @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([groupId, userId])
+}
+
+model Expense {
+  id          Int      @id @default(autoincrement())
+  groupId     Int
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  description String
+  amount      Float
+  currency    String   @default("INR")
+  paidById    Int
+  paidBy      User     @relation(fields: [paidById], references: [id], onDelete: Cascade)
+  splitType   String   @default("EQUAL") // EQUAL, PERCENTAGE, EXACT, SHARE
+  date        DateTime
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  participants ExpenseParticipant[]
+}
+
+model ExpenseParticipant {
+  id         Int     @id @default(autoincrement())
+  expenseId  Int
+  expense    Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  userId     Int
+  amount     Float
+  percentage Float?
+  shares     Float?
+}
+
+model Settlement {
+  id        Int      @id @default(autoincrement())
+  groupId   Int
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  payerId   Int
+  payer     User     @relation("SettlementPayer", fields: [payerId], references: [id], onDelete: Cascade)
+  payeeId   Int
+  payee     User     @relation("SettlementPayee", fields: [payeeId], references: [id], onDelete: Cascade)
+  amount    Float
+  currency  String   @default("INR")
+  date      DateTime @default(now())
+  status    String   @default("COMPLETED") // PENDING, COMPLETED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ExchangeRate {
+  id           Int      @id @default(autoincrement())
+  fromCurrency String
+  toCurrency   String
+  rate         Float
+  date         DateTime @default(now())
+
+  @@unique([fromCurrency, toCurrency, date])
+}
+
+model ImportJob {
+  id           Int      @id @default(autoincrement())
+  filename     String
+  status       String   @default("PENDING") // PENDING, COMPLETED, FAILED
+  uploadedById Int
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  anomalies ImportAnomaly[]
+}
+
+model ImportAnomaly {
+  id              Int       @id @default(autoincrement())
+  jobId           Int
+  job             ImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  rowIndex        Int
+  rawRowData      String // JSON stringified original row
+  anomalyType     String
+  description     String
+  suggestedAction String
+  status          String    @default("PENDING") // PENDING, RESOLVED, IGNORED
+  resolvedAction  String? // Action taken: CORRECTED, IMPORTED_AS_IS, SKIPPED, MERGED, CONVERTED, SETTLEMENT_CREATED
+  resolvedById    Int?
+  resolvedBy      User?     @relation(fields: [resolvedById], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  details   String // JSON stringified details
+  createdAt DateTime @default(now())
+}
