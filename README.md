@@ -2,6 +2,8 @@
 
 A production-ready monorepo Shared Expenses Management Web Application with active/inactive membership histories, multi-currency balance spreadsheets, automated debt simplification, and a CSV import anomaly engine.
 
+* **Live Deployment URL**: [https://shared-expenses-management-web-appl.vercel.app/](https://shared-expenses-management-web-appl.vercel.app/)
+
 ## Tech Stack
 * **Frontend**: React.js, Tailwind CSS, Recharts, Lucide React, Vite.
 * **Backend**: Node.js, Express.js, Prisma ORM, JWT, SQLite (development) & PostgreSQL (production), Zod.
@@ -52,6 +54,20 @@ set PATH=D:\placements\SPREETAIL\node-portable;%PATH%
 cd backend
 npm test
 ```
+
+---
+
+## User Authentication & Setup Guide
+
+### 1. Local Development (Pre-seeded Users)
+For local development, the database is pre-seeded with 6 users:
+* **Emails**: `aisha@example.com`, `rohan@example.com`, `priya@example.com`, `meera@example.com`, `dev@example.com`, `sam@example.com`
+* **Default Password**: `password123`
+
+### 2. Production Environment (Live Deployment)
+Since your production database on Render/PostgreSQL is brand new and empty:
+* **First Action**: You **must click "Sign Up"** (Create Account) at the bottom of the login panel to register a new user first.
+* Once registered, you will be automatically logged in and can create roommate groups or upload CSV files!
 
 ---
 
